@@ -1,3 +1,22 @@
+"""
+analyzer.py
+
+A command-line tool that analyzes C/C++ source code for potential security vulnerabilities
+using a local Large Language Model (LLM).
+
+Usage:
+    python analyzer.py path/to/source_file.c
+
+This script:
+- Accepts a path to a C/C++ source code file as a command-line argument.
+- Reads the content of the file.
+- Sends the code to an LLM for analysis via the analyze_code function.
+- Prints a vulnerability report to the console.
+
+Dependencies:
+- llm_client.py module, which handles the LLM communication.
+"""
+
 import argparse
 from llm_client import analyze_code
 
