@@ -2,12 +2,23 @@ import ollama
 
 def analyze_code(code_snippet: str) -> str:
     """
-    שולח קטע קוד למודל ומחזיר את הניתוח הטקסטואלי.
+    Sends a C/C++ code snippet to the LLM and returns a textual analysis
+    describing potential security vulnerabilities.
     """
 
-    system_prompt = "You are a security expert analyzing C/C++ code for vulnerabilities."
-    user_prompt = f"Analyze the following C/C++ code and list potential security vulnerabilities, line numbers if possible, and explanations:\n\n{code_snippet}"
+    # System prompt to define the LLM's role and context
+    system_prompt = (
+        "You are a security expert analyzing C/C++ code for potential vulnerabilities."
+    )
 
+    # User prompt that includes instructions and the code snippet to analyze
+    user_prompt = (
+        f"Analyze the following C/C++ code and list any potential security "
+        f"vulnerabilities. Include line numbers if possible and provide explanations:\n\n"
+        f"{code_snippet}"
+    )
+
+    # Send the prompts to the local LLM via Ollama
     response = ollama.chat(
         model="gemma:1b",
         messages=[
@@ -16,4 +27,5 @@ def analyze_code(code_snippet: str) -> str:
         ]
     )
 
+    # Extract the textual response from the model and return it
     return response["message"]["content"]
