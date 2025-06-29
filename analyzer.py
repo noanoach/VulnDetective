@@ -2,20 +2,31 @@ import argparse
 from llm_client import analyze_code
 
 def main():
-    parser = argparse.ArgumentParser(description="Analyze C/C++ code for vulnerabilities using an LLM.")
-    parser.add_argument("path", help="Path to C/C++ source file")
+    # Create an argument parser for command-line interface
+    parser = argparse.ArgumentParser(
+        description="Analyze C/C++ code for vulnerabilities using an LLM."
+    )
+    
+    # Add a required argument: path to the C/C++ source file
+    parser.add_argument(
+        "path",
+        help="Path to the C/C++ source file to analyze"
+    )
+    
+    # Parse command-line arguments
     args = parser.parse_args()
 
-    # קראי את הקובץ
+    # Read the contents of the source code file
     with open(args.path, "r") as f:
         code = f.read()
 
-    # הריצי את המודל
+    # Send the code to the LLM for analysis
     analysis = analyze_code(code)
 
-    # הדפיסי את התוצאה
+    # Print the results to the console
     print("\n--- Vulnerability Analysis ---\n")
     print(analysis)
 
+# Entry point for the script
 if __name__ == "__main__":
     main()
