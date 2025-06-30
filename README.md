@@ -11,8 +11,6 @@ This project lets you:
 ✅ Get short, precise vulnerability reports  
 ✅ Run everything locally without sending code to external servers
 
-Originally built for `llama.cpp`, now fully upgraded to work with **Ollama** and models like `gemma3:1b`.
-
 ---
 
 ## ✅ Requirements
@@ -150,11 +148,8 @@ MODEL_NAME = "gemma3:1b"
 ## ⚠️ Notes
 
 - Ensure your system has enough RAM to run your chosen model.
-- For larger code files, consider splitting the code into smaller chunks.
 - VulnDetective sends your prompt locally to Ollama and does **not** require an internet connection once the model is downloaded.
 
 ---
 
-## 🎉 Status
-
-✅ VulnDetective successfully analyzes C/C++ code for security vulnerabilities using local LLMs via Ollama!
+## 🎉 enjoy

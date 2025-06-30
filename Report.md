@@ -34,7 +34,7 @@ Originally, the exercise mentioned:
 
 After research, I concluded:
 
-- **phi-4 does not exist publicly** for download.
+- **phi-4** demands bigger RAM memory then I have available in my laptop.
 - **gemma3:1b** does not exist under that exact name.
 
 Therefore, I selected **Gemma 3 1B IT** from Google:
@@ -70,6 +70,7 @@ Here’s how the tool works in its current design:
 1. **Read C/C++ Code from File**
     - The user runs the CLI with the path to a C or C++ source file.
     - Python reads the entire code into a string.
+    - if the file is too big it divide it into chunks and then combines the results.
 
 2. **Prepare Prompt for the LLM**
     - A strict prompt template is built, instructing the LLM to:
@@ -139,16 +140,6 @@ My current project structure:
 
 ---
 
-## Challenges
-
-- **Unavailable models:** phi-4 and gemma3:1b are not publicly released under those names.
-- Even Gemma 3 1B IT is chat-oriented and sometimes verbose, requiring careful prompt engineering.
-- The model occasionally generates verbose explanations despite strict prompts.
-- Running larger models requires sufficient system RAM.
-- Performance may degrade for very large source code files.
-
----
-
 ## Summary
 
 Despite these challenges, VulnDetective is fully operational:
@@ -184,16 +175,6 @@ Example output:
 Line 5: Buffer overflow vulnerability due to unsafe strcpy usage.
 Line 8: Use of hardcoded password detected in code.
 ```
-
----
-
-# ✅ How This Meets The Requirements
-
-- ✅ Reads a C/C++ source file.
-- ✅ Sends the code to the LLM via HTTP.
-- ✅ Receives vulnerability analysis in one response.
-- ✅ Prints the result for the user.
-- ✅ All runs fully locally (no external APIs required once models are downloaded).
 
 ---
 
