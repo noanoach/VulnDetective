@@ -1,67 +1,37 @@
-"""
-llm_client.py
-
-This module handles communication with a local Large Language Model (LLM)
-running via Ollama.
-
-It provides a function to:
-- Send C/C++ source code snippets as prompts to the LLM.
-- Receive a textual analysis of potential security vulnerabilities.
-
-Instead of relying on llama.cpp binaries, it uses HTTP requests to the
-local Ollama server, making integration simpler.
-
-Dependencies:
-- Ollama installed and running locally (http://localhost:11434)
-- A supported model pulled in advance (e.g. gemma3:1b)
-
-Usage:
-    from llm_client import analyze_code
-
-    result = analyze_code("void foo() { char buf[10]; strcpy(buf, input); }")
-    print(result)
-"""
-
 import requests
 
-# URL to your local Ollama server
 OLLAMA_URL = "http://localhost:11434/api/generate"
-
-# Name of the model you want to use in Ollama
 MODEL_NAME = "gemma3:1b"
 
-# Default number of code lines per chunk (if you want to split long files)
-CHUNK_SIZE = 200
-
-def build_prompt(code_snippet: str) -> str:
-    """
-    Builds a strict prompt instructing the LLM to reply
-    only in a specific format without explanations or additional text.
-    """
+def build_prompt(code_snippet: str, start_line: int) -> str:
     prompt = (
-        "Analyze the following C code for potential security vulnerabilities.\n\n"
+        "Analyze the following C or C++ code for actual security vulnerabilities.\n\n"
         "Your ONLY allowed reply must follow this format:\n\n"
         "Line <line_number>: <Short description of the vulnerability>\n\n"
         "Rules:\n"
-        "- If there are no vulnerabilities, reply exactly: No vulnerabilities found.\n"
-        "- Otherwise, write one line per issue in the format:\n"
-        "Line <line_number>: <Short description of the vulnerability>\n"
+        "- If there are no real vulnerabilities, reply exactly: No vulnerabilities found.\n"
+        "- Only report lines that contain code which is actually vulnerable in the context of this program as written.\n"
+        "- Do NOT report merely theoretical risks or recommendations if the code is safe as implemented.\n"
         "- Do NOT include explanations, summaries, or example code.\n"
         "- Do NOT write \"Answer:\" or any heading.\n"
-        "- Reply ONLY with the list of lines as instructed.\n\n"
+        "- Reply ONLY with the list of lines as instructed.\n"
+        "- Look for real issues like buffer overflows, out-of-bounds accesses, hardcoded secrets, unsafe input handling, format string vulnerabilities, integer overflows, or any other security vulnerabilities.\n\n"
+        f"IMPORTANT:\n"
+        f"- The code below starts at line number {start_line}. "
+        "All line numbers in your output MUST correspond to the real line numbers in the original file.\n\n"
         "Here is the code to analyze:\n\n"
         + code_snippet
     )
+
+
     return prompt
 
 
-def analyze_code(code_snippet: str) -> str:
+def analyze_code(code_snippet: str, start_line: int = 1) -> str:
     """
-    Analyzes the given C/C++ code using a local LLM
-    and returns the model's output as a string.
+    Sends code to the local LLM via Ollama and returns the response as string.
     """
-
-    prompt = build_prompt(code_snippet)
+    prompt = build_prompt(code_snippet, start_line)
 
     try:
         response = requests.post(
@@ -74,12 +44,10 @@ def analyze_code(code_snippet: str) -> str:
             timeout=120
         )
     except requests.RequestException as e:
-        print(f"⚠️ Failed to connect to Ollama server: {e}")
-        return ""
+        return f"⚠️ Failed to connect to Ollama server: {e}"
 
     if response.status_code != 200:
-        print(f"⚠️ Ollama server error {response.status_code}: {response.text}")
-        return ""
+        return f"⚠️ Ollama server error {response.status_code}: {response.text}"
 
     data = response.json()
     result = data.get("response", "").strip()
