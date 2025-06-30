@@ -25,31 +25,76 @@ Usage:
 
 import subprocess
 
-def analyze_code(code_snippet: str) -> str:
-    
-    # Compose the prompt to analyze the code
+# Path to llama.cpp 
+MODEL_PATH = "../llama.cpp/build/bin/llama-cli"
+
+# Path to your GGUF model file
+MODEL_FILE = "./gemma-3-1b-it-q4_k_m.gguf"
+
+# Default number of code lines per chunk (if you want to split long files)
+CHUNK_SIZE = 200
+
+def build_prompt(code_snippet: str) -> str:
+    """
+    Builds a strict prompt instructing the LLM to reply
+    only in a specific format without explanations or additional text.
+    """
     prompt = (
-        "Analyze the following C/C++ code and list potential security vulnerabilities, "
-        "line numbers if possible, and explanations:\n\n"
+        "You are a strict security analysis assistant.\n"
+        "You MUST follow these instructions EXACTLY and produce no extra text:\n\n"
+        "1. Analyze the following C/C++ code for security vulnerabilities.\n"
+        "2. If there are NO vulnerabilities, reply with EXACTLY this text (no quotes):\n"
+        "No vulnerabilities found.\n\n"
+        "3. Otherwise, reply ONLY with lines in this format:\n"
+        "Line <line_number>: <Short description of the vulnerability>\n\n"
+        "STRICT RULES:\n"
+        "- Do NOT write explanations.\n"
+        "- Do NOT write summaries.\n"
+        "- Do NOT include example code.\n"
+        "- Do NOT greet the user.\n"
+        "- Do NOT write any heading, title, or introductory text.\n"
+        "- Do NOT mention that you are an AI or assistant.\n"
+        "- Reply ONLY with the vulnerability lines, or the exact text: No vulnerabilities found.\n\n"
+        "Here is the code to analyze:\n\n"
         + code_snippet
     )
+    return prompt
 
-    # Run llama.cpp executable via subprocess
-    result = subprocess.run(
+
+def analyze_code(prompt: str) -> str:
+    """
+    Analyzes the given C/C++ code using a local LLM
+    and returns the model's output as a string.
+    """
+
+    process = subprocess.Popen(
         [
-            "./main", 
-            "-m", 
-            "./gemma-2b-it.gguf",
-            "-p",
-            prompt
+            MODEL_PATH,
+            "-m",
+            MODEL_FILE,
+            "-n",
+            "512",
+            "--simple-io",
+            "--no-display-prompt",
+            "--no-warmup"
         ],
+        stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True
     )
 
-    if result.returncode != 0:
-        raise RuntimeError(f"llama.cpp failed:\n{result.stderr}")
+    # Send the prompt via stdin and close stdin automatically (like pressing Ctrl+D)
+    stdout, stderr = process.communicate(prompt)
 
-    # Return only the stdout
-    return result.stdout.strip()
+    if stdout.strip() == "":
+        print("⚠️ The model returned empty output!")
+    else:
+        print("✅ Model output:")
+        print(stdout)
+
+    if stderr.strip():
+        print("⚠️ STDERR:")
+        print(stderr)
+
+    return stdout
