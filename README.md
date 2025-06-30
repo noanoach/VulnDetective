@@ -1,55 +1,38 @@
 # VulnDetective
 
-**VulnDetective** 
-is a command-line tool that analyzes C/C++ source code for potential security vulnerabilities using a local Large Language Model (LLM).  
-
-This version works entirely locally with the **Gemma 2B** model downloaded from Hugging Face, and runs inference via **llama.cpp**.
+🔎 VulnDetective analyzes C/C++ source code for potential security vulnerabilities using a local Large Language Model (LLM) via Ollama.
 
 ---
 
-## 🚀 Quick Start
+## 🚀 What is this?
 
-### 1. Clone the Repository
+This project lets you:  
+✅ Analyze your C or C++ code for vulnerabilities  
+✅ Get short, precise vulnerability reports  
+✅ Run everything locally without sending code to external servers
 
-Clone this project from GitHub:
-
-```bash
-git clone https://github.com/noanoach/VulnDetective.git
-cd VulnDetective
-```
-
-Or if you're using SSH:
-
-```bash
-git clone git@github.com:noanoach/VulnDetective.git
-cd VulnDetective
-```
+Originally built for `llama.cpp`, now fully upgraded to work with **Ollama** and models like `gemma3:1b`.
 
 ---
 
-### 2. Install Python & Virtual Environment
+## ✅ Requirements
 
-Ensure Python 3 is installed.
+- Python 3.9+
+- [Ollama](https://ollama.com/download) installed locally
+- A pulled model (e.g. `gemma3:1b`)
 
-#### Linux/macOS
+---
+
+## 📥 Installation
+
+### 1. Create a virtual environment
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-#### Windows (PowerShell)
-
-```powershell
-python -m venv venv
-venv\Scripts\activate
-```
-
----
-
-### 3. Install Python Dependencies
-
-Run:
+### 2. Install Python dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -57,127 +40,121 @@ pip install -r requirements.txt
 
 ---
 
-### 4. Create a Hugging Face Account
+## ⚙️ Running Ollama
 
-Since **Gemma 2B** is a gated model, you must:
-
-✅ Create a free account on Hugging Face.  
-✅ Accept the license agreement for **Gemma 2B** here:
-
-👉 [https://huggingface.co/google/gemma-2b-it-GGUF](https://huggingface.co/google/gemma-2b-it-GGUF)
-
----
-
-### 5. Install Hugging Face CLI
-
-Install the CLI tool (inside your virtual environment):
+Start the Ollama server locally:
 
 ```bash
-pip install huggingface_hub --break-system-packages
+ollama serve
 ```
 
----
+If you see this error:
 
-### 6. Login to Hugging Face
+```
+Error: listen tcp 127.0.0.1:11434: bind: address already in use
+```
 
-Run:
+Check what is using the port:
 
 ```bash
-huggingface-cli login
+lsof -i :11434
 ```
 
-Enter your token when prompted.  
-Your token can be created here:
-
-👉 [https://huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
-
----
-
-### 7. Download the Gemma Model
-
-Download the model directly into your project folder:
+Then kill the process:
 
 ```bash
-huggingface-cli download google/gemma-3-1b-it-GGUF gemma-3-1b-it-q4_k_m.gguf --local-dir ./ --local-dir-use-symlinks False
-
-```
-
-After downloading, you'll have:
-
-```
-./gemma-3-1b-it-q4_k_m.gguf
-
+kill -9 <PID>
 ```
 
 ---
 
-### 8. Install llama.cpp
+### Check available models
 
-Clone and compile llama.cpp:
-
-#### Linux/macOS
+List your downloaded models:
 
 ```bash
-git clone https://github.com/ggerganov/llama.cpp
-cd llama.cpp
-make
+ollama list
 ```
 
-#### Windows
+You should see something like:
 
-Follow the Windows build instructions here:  
-👉 [https://github.com/ggerganov/llama.cpp#build-windows](https://github.com/ggerganov/llama.cpp#build-windows)
+```
+NAME              SIZE
+gemma3:1b         815 MB
+```
 
----
-
-### 9. Test llama.cpp
-
-Run a test inference:
+If you haven’t downloaded the model yet, pull it:
 
 ```bash
-../llama.cpp/build/bin/llama-cli -m ./gemma-3-1b-it-q4_k_m.gguf -p "Hello!"
-
+ollama pull gemma3:1b
 ```
-
-You should see a textual answer from the model.
 
 ---
 
-### 10. Run VulnDetective
+## 🔧 How to Use
 
-Once your environment is set up, run VulnDetective:
+Analyze a C or C++ file:
 
 ```bash
 python analyzer.py path/to/your_file.c
 ```
 
-Example output:
+Example:
+
+```bash
+python analyzer.py tests/test.c
+```
+
+Sample output:
 
 ```
 --- Vulnerability Analysis ---
 
-Line 20: Possible buffer overflow due to unsafe use of strcpy().
-Line 35: Potential use-after-free vulnerability detected.
+Line 5: Buffer overflow vulnerability due to unsafe strcpy usage.
+Line 8: Use of hardcoded password detected in code.
 ```
 
 ---
 
-## 🛠 Project Architecture and Design
-
-The project is organized as follows:
+## 📦 Project Structure
 
 ```
-/VulnDetective
+VulnDetective/
 │
-├── analyzer.py         # CLI tool
-├── llm_client.py       # Code handling LLM requests
-├── parser.py           # Code splitting into manageable chunks
-├── README.md           # Documentation
-├── Report.md           # Project work report
-├── requirements.txt    # Python dependencies
-├── .gitignore
-└── tests/              # Test C/C++ code samples
+├── analyzer.py
+├── llm_client.py
+├── requirements.txt
+└── tests/
+     ├── test.c
+     └── medium_test.cpp
 ```
 
 ---
-Enjoy analyzing your code securely with VulnDetective!
+
+## 📝 Models
+
+By default, VulnDetective uses the following model:
+
+```
+gemma3:1b
+```
+
+If you want to change the model, edit the `MODEL_NAME` variable in `llm_client.py`:
+
+```python
+MODEL_NAME = "gemma3:1b"
+```
+
+---
+
+## ⚠️ Notes
+
+- Ensure your system has enough RAM to run your chosen model.
+- For larger code files, consider splitting the code into smaller chunks.
+- VulnDetective sends your prompt locally to Ollama and does **not** require an internet connection once the model is downloaded.
+
+---
+
+## 🎉 Status
+
+✅ VulnDetective successfully analyzes C/C++ code for security vulnerabilities using local LLMs via Ollama!
