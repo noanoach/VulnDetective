@@ -1,8 +1,16 @@
+# Python virtual environment
 venv/
+
+# Python bytecode
 __pycache__/
 *.pyc
+
+# Log files
+*.log
+
+# OS system files
 .DS_Store
-gemma-2b-it.gguf
-gemma-3-1b-it-q4_k_m.gguf
-phi-2.Q4_K_M.gguf
+Thumbs.db
+
+# Exclude tests directory
 tests/
