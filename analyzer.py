@@ -34,12 +34,6 @@ def analyze_file_in_chunks(code: str, max_lines: int):
     print("\n--- Vulnerability Analysis ---\n")
     print(final_report)
 
-    # Optional: Save to file
-    output_filename = "vulnerability_report.txt"
-    with open(output_filename, "w") as f:
-        f.write("--- Vulnerability Analysis ---\n\n")
-        f.write(final_report)
-
 
 def main():
     """
