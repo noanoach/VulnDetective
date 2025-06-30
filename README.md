@@ -1,6 +1,7 @@
 # VulnDetective
 
-**VulnDetective** is a command-line tool that analyzes C/C++ source code for potential security vulnerabilities using a local Large Language Model (LLM).  
+**VulnDetective** 
+is a command-line tool that analyzes C/C++ source code for potential security vulnerabilities using a local Large Language Model (LLM).  
 
 This version works entirely locally with the **Gemma 2B** model downloaded from Hugging Face, and runs inference via **llama.cpp**.
 
@@ -97,13 +98,15 @@ Your token can be created here:
 Download the model directly into your project folder:
 
 ```bash
-huggingface-cli download google/gemma-2b-it-GGUF gemma-2b-it.gguf --local-dir ./
+huggingface-cli download google/gemma-3-1b-it-GGUF gemma-3-1b-it-q4_k_m.gguf --local-dir ./ --local-dir-use-symlinks False
+
 ```
 
 After downloading, you'll have:
 
 ```
-./gemma-2b-it.gguf
+./gemma-3-1b-it-q4_k_m.gguf
+
 ```
 
 ---
@@ -132,7 +135,8 @@ Follow the Windows build instructions here:
 Run a test inference:
 
 ```bash
-./main -m ../gemma-2b-it.gguf -p "Analyze the following C code for vulnerabilities:\n\nvoid foo() { char buf[10]; strcpy(buf, input); }"
+../llama.cpp/build/bin/llama-cli -m ./gemma-3-1b-it-q4_k_m.gguf -p "Hello!"
+
 ```
 
 You should see a textual answer from the model.
@@ -165,23 +169,15 @@ The project is organized as follows:
 ```
 /VulnDetective
 │
-├── analyzer.py         # Main CLI tool
-├── llm_client.py       # Handles local LLM communication via llama.cpp
-├── parser.py           # Splits code into chunks and parses LLM responses
-├── README.md           # Project documentation
-├── Report.md           # Detailed report on design decisions and process
+├── analyzer.py         # CLI tool
+├── llm_client.py       # Code handling LLM requests
+├── parser.py           # Code splitting into manageable chunks
+├── README.md           # Documentation
+├── Report.md           # Project work report
 ├── requirements.txt    # Python dependencies
-└── .gitignore          # Files and folders ignored by git
+├── .gitignore
+└── tests/              # Test C/C++ code samples
 ```
 
 ---
-
-## ✅ Notes
-
-- The **Gemma 2B** model is gated and requires license acceptance on Hugging Face.
-- Models like `phi-4` do **not exist publicly** and cannot be used.
-- `gemma3:1b` also does **not exist** under that exact name; Gemma 2B is the closest available alternative.
-
----
-
 Enjoy analyzing your code securely with VulnDetective!
