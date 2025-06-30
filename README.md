@@ -109,7 +109,11 @@ Sample output:
 --- Vulnerability Analysis ---
 
 Line 5: Buffer overflow vulnerability due to unsafe strcpy usage.
+Fix: Use strncpy with a proper size limit or ensure bounds checking before copying.
+
 Line 8: Use of hardcoded password detected in code.
+Fix: Store secrets securely outside the source code, e.g. in environment variables or secure vaults.
+
 ```
 
 ---
@@ -118,13 +122,12 @@ Line 8: Use of hardcoded password detected in code.
 
 ```
 VulnDetective/
-│
-├── analyzer.py
-├── llm_client.py
-├── requirements.txt
-└── tests/
-     ├── test.c
-     └── medium_test.cpp
+├── requirements.txt         # Python dependencies required for running the tool
+├── analyzer.py              # Main script to analyze C/C++ files for vulnerabilities
+├── llm_client.py            # Handles communication with the Ollama LLM API
+├── parser.py                # Utilities for splitting large code files into smaller chunks
+└── other C/C++ source files # Your C/C++ code files to be analyzed (e.g. library.c, etc.)
+
 ```
 
 ---
