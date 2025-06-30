@@ -30,6 +30,7 @@ def build_prompt(code_snippet: str, start_line: int) -> str:
 def analyze_code(code_snippet: str, start_line: int = 1) -> str:
     """
     Sends code to the local LLM via Ollama and returns the response as string.
+    Handles timeouts and connection errors explicitly.
     """
     prompt = build_prompt(code_snippet, start_line)
 
@@ -43,16 +44,20 @@ def analyze_code(code_snippet: str, start_line: int = 1) -> str:
             },
             timeout=120
         )
+    except requests.Timeout:
+        return "Error: Request to Ollama timed out after 120 seconds."
+    except requests.ConnectionError:
+        return "Error: Could not connect to the Ollama server. Is it running?"
     except requests.RequestException as e:
-        return f"⚠️ Failed to connect to Ollama server: {e}"
+        return f"Error: An unexpected error occurred while communicating with Ollama: {e}"
 
     if response.status_code != 200:
-        return f"⚠️ Ollama server error {response.status_code}: {response.text}"
+        return f"Error: Ollama server responded with status code {response.status_code}: {response.text}"
 
     data = response.json()
     result = data.get("response", "").strip()
 
     if not result:
-        return "⚠️ The model returned empty output!"
+        return "Error: The model returned an empty response."
     else:
         return result
