@@ -8,6 +8,7 @@ def build_prompt(code_snippet: str, start_line: int) -> str:
         "Analyze the following C or C++ code for actual security vulnerabilities.\n\n"
         "Your ONLY allowed reply must follow this format:\n\n"
         "Line <line_number>: <Short description of the vulnerability>\n\n"
+        "Fix: <Short suggested code fix>\n\n"
         "Rules:\n"
         "- If there are no real vulnerabilities, reply exactly: No vulnerabilities found.\n"
         "- Only report lines that contain code which is actually vulnerable in the context of this program as written.\n"
