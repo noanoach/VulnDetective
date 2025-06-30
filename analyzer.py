@@ -9,9 +9,13 @@ def analyze_entire_file(code: str):
     Analyzes a complete code file in a single LLM request.
     Prints the vulnerability analysis result directly.
     """
-    result = analyze_code(code, start_line=1)
-    print("\n--- Vulnerability Analysis ---\n")
-    print(result)
+    try:
+        result = analyze_code(code, start_line=1)
+        print("\n--- Vulnerability Analysis ---\n")
+        print(result)
+    except Exception as e:
+        print("Error while analyzing the entire file:")
+        print(str(e))
 
 
 def analyze_file_in_chunks(code: str, max_lines: int):
@@ -20,19 +24,24 @@ def analyze_file_in_chunks(code: str, max_lines: int):
     Concatenates all results into a single final report.
     Prints the vulnerability analysis result directly.
     """
-    chunks = list(split_code_into_chunks(code, max_lines=max_lines))
+    try:
+        chunks = list(split_code_into_chunks(code, max_lines=max_lines))
+        all_responses = []
 
-    all_responses = []
+        for i, chunk in enumerate(chunks):
+            start_line = i * max_lines + 1
+            try:
+                response = analyze_code(chunk, start_line=start_line)
+                all_responses.append(response)
+            except Exception as e:
+                print(f"Error analyzing chunk starting at line {start_line}: {e}")
 
-    for i, chunk in enumerate(chunks):
-        start_line = i * max_lines + 1
-        response = analyze_code(chunk, start_line=start_line)
-        all_responses.append(response)
-
-    final_report = "\n".join(all_responses)
-
-    print("\n--- Vulnerability Analysis ---\n")
-    print(final_report)
+        final_report = "\n".join(all_responses)
+        print("\n--- Vulnerability Analysis ---\n")
+        print(final_report)
+    except Exception as e:
+        print("Error during chunked analysis:")
+        print(str(e))
 
 
 def main():
@@ -62,18 +71,27 @@ def main():
     )
     args = parser.parse_args()
 
-    # Read the entire code file
-    with open(args.path, "r") as f:
-        code = f.read()
+    try:
+        with open(args.path, "r") as f:
+            code = f.read()
 
-    # Count how many lines there are in the file
-    num_lines = len(code.splitlines())
+        if not code.strip():
+            print("The file is empty.")
+            return
 
-    # Decide whether to analyze entire file or split into chunks
-    if num_lines <= args.threshold:
-        analyze_entire_file(code)
-    else:
-        analyze_file_in_chunks(code, args.max_lines)
+        num_lines = len(code.splitlines())
+
+        if num_lines <= args.threshold:
+            analyze_entire_file(code)
+        else:
+            analyze_file_in_chunks(code, args.max_lines)
+
+    except FileNotFoundError:
+        print(f"File not found: {args.path}")
+    except Exception as e:
+        print("Unexpected error occurred:")
+        print(str(e))
+
 
 if __name__ == "__main__":
     main()
