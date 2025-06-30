@@ -3,3 +3,6 @@ __pycache__/
 *.pyc
 .DS_Store
 gemma-2b-it.gguf
+gemma-3-1b-it-q4_k_m.gguf
+phi-2.Q4_K_M.gguf
+tests/

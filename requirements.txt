@@ -1,4 +1,2 @@
 # requirements.txt
-
-# This project currently requires no external Python packages.
-# All functionality uses the Python Standard Library only.
+requests>=2.28

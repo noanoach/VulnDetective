@@ -1,20 +1,19 @@
 """
 llm_client.py
 
-This module handles communication with a local Large Language Model (LLM) 
-running via llama.cpp.
+This module handles communication with a local Large Language Model (LLM)
+running via Ollama.
 
 It provides a function to:
 - Send C/C++ source code snippets as prompts to the LLM.
 - Receive a textual analysis of potential security vulnerabilities.
 
-Instead of relying on Ollama or external APIs, it uses subprocess calls 
-to run llama.cpp locally, ensuring full offline operation once the model 
-has been downloaded.
+Instead of relying on llama.cpp binaries, it uses HTTP requests to the
+local Ollama server, making integration simpler.
 
 Dependencies:
-- llama.cpp compiled binary available in the same directory as this script.
-- gemma-2b-it.gguf model file in the project directory.
+- Ollama installed and running locally (http://localhost:11434)
+- A supported model pulled in advance (e.g. gemma3:1b)
 
 Usage:
     from llm_client import analyze_code
@@ -23,13 +22,13 @@ Usage:
     print(result)
 """
 
-import subprocess
+import requests
 
-# Path to llama.cpp 
-MODEL_PATH = "../llama.cpp/build/bin/llama-cli"
+# URL to your local Ollama server
+OLLAMA_URL = "http://localhost:11434/api/generate"
 
-# Path to your GGUF model file
-MODEL_FILE = "./gemma-3-1b-it-q4_k_m.gguf"
+# Name of the model you want to use in Ollama
+MODEL_NAME = "gemma3:1b"
 
 # Default number of code lines per chunk (if you want to split long files)
 CHUNK_SIZE = 200
@@ -40,61 +39,52 @@ def build_prompt(code_snippet: str) -> str:
     only in a specific format without explanations or additional text.
     """
     prompt = (
-        "You are a strict security analysis assistant.\n"
-        "You MUST follow these instructions EXACTLY and produce no extra text:\n\n"
-        "1. Analyze the following C/C++ code for security vulnerabilities.\n"
-        "2. If there are NO vulnerabilities, reply with EXACTLY this text (no quotes):\n"
-        "No vulnerabilities found.\n\n"
-        "3. Otherwise, reply ONLY with lines in this format:\n"
+        "Analyze the following C code for potential security vulnerabilities.\n\n"
+        "Your ONLY allowed reply must follow this format:\n\n"
         "Line <line_number>: <Short description of the vulnerability>\n\n"
-        "STRICT RULES:\n"
-        "- Do NOT write explanations.\n"
-        "- Do NOT write summaries.\n"
-        "- Do NOT include example code.\n"
-        "- Do NOT greet the user.\n"
-        "- Do NOT write any heading, title, or introductory text.\n"
-        "- Do NOT mention that you are an AI or assistant.\n"
-        "- Reply ONLY with the vulnerability lines, or the exact text: No vulnerabilities found.\n\n"
+        "Rules:\n"
+        "- If there are no vulnerabilities, reply exactly: No vulnerabilities found.\n"
+        "- Otherwise, write one line per issue in the format:\n"
+        "Line <line_number>: <Short description of the vulnerability>\n"
+        "- Do NOT include explanations, summaries, or example code.\n"
+        "- Do NOT write \"Answer:\" or any heading.\n"
+        "- Reply ONLY with the list of lines as instructed.\n\n"
         "Here is the code to analyze:\n\n"
         + code_snippet
     )
     return prompt
 
 
-def analyze_code(prompt: str) -> str:
+def analyze_code(code_snippet: str) -> str:
     """
     Analyzes the given C/C++ code using a local LLM
     and returns the model's output as a string.
     """
 
-    process = subprocess.Popen(
-        [
-            MODEL_PATH,
-            "-m",
-            MODEL_FILE,
-            "-n",
-            "512",
-            "--simple-io",
-            "--no-display-prompt",
-            "--no-warmup"
-        ],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True
-    )
+    prompt = build_prompt(code_snippet)
 
-    # Send the prompt via stdin and close stdin automatically (like pressing Ctrl+D)
-    stdout, stderr = process.communicate(prompt)
+    try:
+        response = requests.post(
+            OLLAMA_URL,
+            json={
+                "model": MODEL_NAME,
+                "prompt": prompt,
+                "stream": False
+            },
+            timeout=120
+        )
+    except requests.RequestException as e:
+        print(f"⚠️ Failed to connect to Ollama server: {e}")
+        return ""
 
-    if stdout.strip() == "":
-        print("⚠️ The model returned empty output!")
+    if response.status_code != 200:
+        print(f"⚠️ Ollama server error {response.status_code}: {response.text}")
+        return ""
+
+    data = response.json()
+    result = data.get("response", "").strip()
+
+    if not result:
+        return "⚠️ The model returned empty output!"
     else:
-        print("✅ Model output:")
-        print(stdout)
-
-    if stderr.strip():
-        print("⚠️ STDERR:")
-        print(stderr)
-
-    return stdout
+        return result
