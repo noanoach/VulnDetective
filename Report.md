@@ -125,40 +125,6 @@ VulnDetective/
 
 ---
 
-## Implementation Details
-
-- The CLI uses Python’s `argparse` for argument parsing.
-- Reads source code into a string.
-- Sends the string as a prompt to the Ollama server.
-- Prints the JSON response’s content to the console.
-
-**Improvements in this version:**
-- Faster integration via HTTP instead of subprocess calls.
-- Cleaner and more maintainable code.
-- Avoids complex interactive shell management.
-- Allows switching to different models via simple configuration.
-
----
-
-## Summary
-
-Despite these challenges, VulnDetective is fully operational:
-
-- Integrates with a local LLM via Ollama.
-- Accepts C/C++ code as input.
-- Outputs vulnerability analysis in a precise, readable format.
-
-Future improvements:
-
-- Further refine prompts to enforce stricter, shorter outputs.
-- Parse results into structured JSON for automated processing.
-- Experiment with alternative LLMs better optimized for instruction following.
-- Add richer reporting and visualization features to the CLI.
-
-VulnDetective now runs successfully via Ollama and provides a solid foundation for local vulnerability analysis of C/C++ code.
-
----
-
 ## Example Run
 
 Example command:

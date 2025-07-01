@@ -126,7 +126,7 @@ VulnDetective/
 ├── analyzer.py              # Main script to analyze C/C++ files for vulnerabilities
 ├── llm_client.py            # Handles communication with the Ollama LLM API
 ├── parser.py                # Utilities for splitting large code files into smaller chunks
-└── other C/C++ source files # Your C/C++ code files to be analyzed (e.g. library.c, etc.)
+└── other C/C++ source files # Your C/C++ code files to be analyzed.
 
 ```
 
@@ -142,7 +142,7 @@ gemma3:1b
 
 If you want to change the model, edit the `MODEL_NAME` variable in `llm_client.py`:
 
-```python
+```
 MODEL_NAME = "gemma3:1b"
 ```
 
